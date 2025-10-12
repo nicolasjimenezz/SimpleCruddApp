@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App</title>
+</head>
+<body>
+  <h1>Todo List</h1>
+
+  <input id="newTodo" type="text" placeholder="Add a new todo" />
+  <button onclick="addTodo()">Add</button>
+
+  <ul id="todoList"></ul>
+
+  <script>
+    const API_URL = "https://simplecruddapp.onrender.com/todos";
+
+    async function loadTodos() {
+      const res = await fetch(API_URL);
+      const todos = await res.json();
+      const list = document.getElementById("todoList");
+      list.innerHTML = "";
+      todos.forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = `${t.title} ${t.isDone ? "✅" : ""}`;
+        li.onclick = () => toggleTodo(t);
+        list.appendChild(li);
+      });
+    }
+
+    async function addTodo() {
+      const title = document.getElementById("newTodo").value;
+      if (!title.trim()) return;
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, isDone: false })
+      });
+      document.getElementById("newTodo").value = "";
+      loadTodos();
+    }
+
+    async function toggleTodo(todo) {
+      await fetch(`${API_URL}/${todo.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...todo, isDone: !todo.isDone })
+      });
+      loadTodos();
+    }
+
+    loadTodos();
+  </script>
+</body>
+</html>
